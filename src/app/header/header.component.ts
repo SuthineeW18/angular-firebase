@@ -1,5 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { DataStorageService } from '../shared/data-storage.service';
+import { Subscription } from 'rxjs';
+import { AuthService } from '../auth/auth.service';
+import { RecipeService } from '../recipes/recipe.service';
 
 @Component({
   selector: 'app-header',
@@ -7,10 +10,21 @@ import { DataStorageService } from '../shared/data-storage.service';
   styleUrls: ['./header.component.scss']
 })
 export class HeaderComponent implements OnInit {
+  isAuthenticated = false;
+  private userSub: Subscription;
 
-  constructor(private dataStorageService: DataStorageService) {}
+  constructor(
+    private dataStorageService: DataStorageService,
+    private authService: AuthService,
+    private recipeService: RecipeService
+    ) {}
 
   ngOnInit(): void {
+    this.userSub = this.authService.user.subscribe(user => {
+      this.isAuthenticated = !!user;
+      console.log(!user);
+      console.log(!!user);
+    });
   }
 
   onSaveData() {
@@ -18,6 +32,16 @@ export class HeaderComponent implements OnInit {
   }
 
   onFetchData() {
-    this.dataStorageService.fetchRecipes().subscribe();
+    this.dataStorageService.fetchRecipes().subscribe((res) => {
+      console.log('res fetch => ', res);
+    });
+  }
+
+  onLogout() {
+    this.authService.logout();
+  }
+
+  ngOnDestroy() {
+    this.userSub.unsubscribe();
   }
 }
